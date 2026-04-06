@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Lie Detector Pro</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>🧠 AI Lie Detector Pro</h1>
+
+<div id="chat-box" class="chat-box"></div>
+
+<div class="input-area">
+<input type="text" id="inputText" placeholder="Type your statement...">
+<button onclick="analyze()">Analyze</button>
+</div>
+
+<div class="progress-container">
+<div id="progress-bar">0%</div>
+</div>
+
+<div id="explanation"></div>
+
+</div>
+
+<script>
+async function analyze() {
+    let text = document.getElementById("inputText").value;
+    let chatBox = document.getElementById("chat-box");
+
+    if (text === "") return;
+
+    // User message
+    chatBox.innerHTML += `<div class="user">🧑 ${text}</div>`;
+
+    let response = await fetch("/analyze", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({text: text})
+    });
+
+    let data = await response.json();
+
+    // 🎯 Color logic
+    let color = "#f1c40f";
+    if (data.result.includes("Truth")) color = "#2ecc71";
+    else if (data.result.includes("Lie")) color = "#e74c3c";
+
+    // 🤖 Typing animation
+    let botDiv = document.createElement("div");
+    let classType = "bot uncertain";
+
+if (data.result.includes("Truth")) classType = "bot truth";
+else if (data.result.includes("Lie")) classType = "bot lie";
+
+botDiv.className = classType;
+    botDiv.style.background = color;
+    chatBox.appendChild(botDiv);
+
+    let message = `🤖 ${data.result} (${data.score}%)`;
+    let i = 0;
+
+    function typeEffect() {
+        if (i < message.length) {
+            botDiv.innerHTML += message.charAt(i);
+            i++;
+            setTimeout(typeEffect, 15);
+        }
+    }
+
+    typeEffect();
+
+    // 📈 Progress bar
+    let bar = document.getElementById("progress-bar");
+    bar.style.width = data.score + "%";
+    bar.innerText = data.score + "%";
+
+    if (data.score > 60) bar.style.background = "#e74c3c";
+    else if (data.score < 40) bar.style.background = "#2ecc71";
+    else bar.style.background = "#f1c40f";
+
+    // 💡 Explanation
+    document.getElementById("explanation").innerHTML =
+        `💡 <b>Why?</b> ${data.explanation}`;
+
+    // Smooth scroll
+    chatBox.scrollTo({
+        top: chatBox.scrollHeight,
+        behavior: "smooth"
+    });
+
+    document.getElementById("inputText").value = "";
+}
+
+// Enter key support
+document.getElementById("inputText").addEventListener("keypress", function(e) {
+    if (e.key === "Enter") analyze();
+});
+</script>
+
+</body>
+</html>
