@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 app = Flask(__name__)
 
-# 🌐 FACT CHECK
+#  FACT CHECK
 def fact_check(text):
     text = text.lower()
 
@@ -24,7 +24,7 @@ def fact_check(text):
     return False
 
 
-# ⚠️ CONTRADICTION
+#  CONTRADICTION
 def detect_contradiction(text):
     text = text.lower()
     return "always" in text and "sometimes" in text
@@ -40,27 +40,27 @@ def analyze():
     data = request.json
     text = data["text"]
 
-    # 🌐 FACT CHECK
+    #  FACT CHECK
     if fact_check(text):
         return jsonify({
-            "result": "🌐 Verified Fact",
+            "result": " Verified Fact",
             "score": 95,
             "explanation": "This matches real-world knowledge."
         })
 
-    # ⚠️ CONTRADICTION
+    # CONTRADICTION
     if detect_contradiction(text):
         return jsonify({
-            "result": "⚠️ Contradictory Statement",
+            "result": " Contradictory Statement",
             "score": 50,
             "explanation": "Conflicting words detected."
         })
 
-    # 🤖 ML PREDICTION
+    #  ML PREDICTION
     truth_score, lie_score = predict(text)
     text_lower = text.lower()
 
-    # 🧠 RULES
+    #  RULES
     strong_words = ["always", "definitely", "never", "absolutely"]
     uncertain_words = ["maybe", "probably", "guess", "think", "not sure"]
 
@@ -70,7 +70,7 @@ def analyze():
     if any(w in text_lower for w in uncertain_words):
         lie_score += 20
 
-    # 🎲 SMALL RANDOM ADJUSTMENT
+    #  SMALL RANDOM ADJUSTMENT
     lie_score += random.randint(-5, 5)
 
     # CLAMP
@@ -79,13 +79,13 @@ def analyze():
 
     # 🎯 FINAL DECISION
     if lie_score < 40:
-        label = "✅ Likely Truth"
+        label = " Likely Truth"
     elif lie_score > 60:
-        label = "⚠️ Possible Lie"
+        label = " Possible Lie"
     else:
-        label = "🤔 Uncertain"
+        label = " Uncertain"
 
-    # 💡 EXPLANATION
+    #  EXPLANATION
     explanation = f"Truth: {round(truth_score,2)}% | Lie: {round(lie_score,2)}%"
 
     # highlight detected words
@@ -93,11 +93,17 @@ def analyze():
     if found:
         explanation += f" | Detected: {', '.join(found)}"
 
-    return jsonify({
-        "result": label,
-        "score": round(lie_score, 2),
-        "explanation": explanation
-    })
+  #  Choose correct score to display
+if "Truth" in label:
+    display_score = truth_score
+else:
+    display_score = lie_score
+
+return jsonify({
+    "result": label,
+    "score": round(display_score, 2),
+    "explanation": explanation
+})
 
 
 if __name__ == "__main__":
