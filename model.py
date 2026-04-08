@@ -1,7 +1,7 @@
 import pandas as pd
 import os
 from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import MultinomialNB
 
 vectorizer = None
 model = None
@@ -18,17 +18,20 @@ def load_model():
     X = data["text"]
     y = data["label"]
 
-    vectorizer = TfidfVectorizer(ngram_range=(1,3), stop_words='english')
+    vectorizer = TfidfVectorizer(ngram_range=(1,2), stop_words='english')
     X_vec = vectorizer.fit_transform(X)
 
-    model = LogisticRegression(max_iter=1000)
+    model = MultinomialNB()
     model.fit(X_vec, y)
 
+
 def predict(text):
-    load_model()   # ✅ load only when needed
+    load_model()
 
     text_vec = vectorizer.transform([text])
-    result = model.predict(text_vec)[0]
-    confidence = model.predict_proba(text_vec).max() * 100
+    probs = model.predict_proba(text_vec)[0]
 
-    return result, confidence
+    truth_prob = probs[0] * 100
+    lie_prob = probs[1] * 100
+
+    return truth_prob, lie_prob
