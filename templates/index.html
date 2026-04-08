@@ -35,7 +35,7 @@ async function analyze() {
     if (text === "") return;
 
     // User message
-    chatBox.innerHTML += `<div class="user">🧑 ${text}</div>`;
+    chatBox.innerHTML += `<div class="user"> ${text}</div>`;
 
     let response = await fetch("/analyze", {
         method: "POST",
@@ -45,12 +45,12 @@ async function analyze() {
 
     let data = await response.json();
 
-    // 🎯 Color logic
+    //  Color logic
     let color = "#f1c40f";
     if (data.result.includes("Truth")) color = "#2ecc71";
     else if (data.result.includes("Lie")) color = "#e74c3c";
 
-    // 🤖 Typing animation
+    //  Typing animation
     let botDiv = document.createElement("div");
     let classType = "bot uncertain";
 
@@ -61,7 +61,7 @@ botDiv.className = classType;
     botDiv.style.background = color;
     chatBox.appendChild(botDiv);
 
-    let message = `🤖 ${data.result} (${data.score}%)`;
+    let message = ` ${data.result} (${data.score}%)`;
     let i = 0;
 
     function typeEffect() {
@@ -74,7 +74,7 @@ botDiv.className = classType;
 
     typeEffect();
 
-    // 📈 Progress bar
+    //  Progress bar
     let bar = document.getElementById("progress-bar");
     bar.style.width = data.score + "%";
     bar.innerText = data.score + "%";
@@ -83,9 +83,9 @@ botDiv.className = classType;
     else if (data.score < 40) bar.style.background = "#2ecc71";
     else bar.style.background = "#f1c40f";
 
-    // 💡 Explanation
+    //  Explanation
     document.getElementById("explanation").innerHTML =
-        `💡 <b>Why?</b> ${data.explanation}`;
+        ` <b>Why?</b> ${data.explanation}`;
 
     // Smooth scroll
     chatBox.scrollTo({
