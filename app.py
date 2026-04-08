@@ -40,13 +40,18 @@ def analyze():
     data = request.json
     text = data["text"]
 
-    #  FACT CHECK
-    if fact_check(text):
-        return jsonify({
-            "result": " Verified Fact",
-            "score": 95,
-            "explanation": "This matches real-world knowledge."
-        })
+    # all logic here...
+
+    if "Truth" in label:
+        display_score = truth_score
+    else:
+        display_score = lie_score
+
+    return jsonify({
+        "result": label,
+        "score": round(display_score, 2),
+        "explanation": explanation
+    })
 
     # CONTRADICTION
     if detect_contradiction(text):
