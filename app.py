@@ -5,7 +5,7 @@ from rapidfuzz import fuzz
 
 app = Flask(__name__)
 
-# 🌐 FACT CHECK FUNCTION
+# 🌐 FACT CHECK
 def fact_check(text):
     text = text.lower()
 
@@ -24,7 +24,7 @@ def fact_check(text):
     return False
 
 
-# ⚠️ CONTRADICTION DETECTION
+# ⚠️ CONTRADICTION
 def detect_contradiction(text):
     text = text.lower()
     return "always" in text and "sometimes" in text
@@ -40,7 +40,7 @@ def analyze():
     data = request.json
     text = data["text"]
 
-    # 🌐 FACT CHECK (highest priority)
+    # 🌐 FACT CHECK
     if fact_check(text):
         return jsonify({
             "result": "🌐 Verified Fact",
@@ -48,7 +48,7 @@ def analyze():
             "explanation": "This matches real-world knowledge."
         })
 
-    # ⚠️ CONTRADICTION CHECK
+    # ⚠️ CONTRADICTION
     if detect_contradiction(text):
         return jsonify({
             "result": "⚠️ Contradictory Statement",
@@ -57,42 +57,45 @@ def analyze():
         })
 
     # 🤖 ML PREDICTION
-    result, confidence = predict(text)
-
+    truth_score, lie_score = predict(text)
     text_lower = text.lower()
 
-    # 🧠 RULE-BASED CORRECTION (STRONG WORDS)
+    # 🧠 RULES
     strong_words = ["always", "definitely", "never", "absolutely"]
-    if any(word in text_lower for word in strong_words):
-        confidence -= 15   # reduce lie probability
-
-    # ⚠️ UNCERTAINTY DETECTION
     uncertain_words = ["maybe", "probably", "guess", "think", "not sure"]
-    if any(word in text_lower for word in uncertain_words):
-        confidence += 20   # increase lie probability
 
-    # 🎲 RANDOM SMALL VARIATION
-    confidence += random.randint(-5, 5)
+    if any(w in text_lower for w in strong_words):
+        lie_score -= 15
 
-    # 🎯 CLAMP VALUE (0–100)
-    confidence = max(0, min(100, confidence))
+    if any(w in text_lower for w in uncertain_words):
+        lie_score += 20
+
+    # 🎲 SMALL RANDOM ADJUSTMENT
+    lie_score += random.randint(-5, 5)
+
+    # CLAMP
+    lie_score = max(0, min(100, lie_score))
+    truth_score = 100 - lie_score
 
     # 🎯 FINAL DECISION
-    if confidence < 40:
+    if lie_score < 40:
         label = "✅ Likely Truth"
-        explanation = "Statement appears confident and clear."
-
-    elif confidence > 60:
+    elif lie_score > 60:
         label = "⚠️ Possible Lie"
-        explanation = "Statement contains uncertainty patterns."
-
     else:
         label = "🤔 Uncertain"
-        explanation = "Mixed signals detected."
+
+    # 💡 EXPLANATION
+    explanation = f"Truth: {round(truth_score,2)}% | Lie: {round(lie_score,2)}%"
+
+    # highlight detected words
+    found = [w for w in uncertain_words if w in text_lower]
+    if found:
+        explanation += f" | Detected: {', '.join(found)}"
 
     return jsonify({
         "result": label,
-        "score": round(confidence, 2),
+        "score": round(lie_score, 2),
         "explanation": explanation
     })
 
